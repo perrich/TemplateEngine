@@ -13,9 +13,9 @@ Sample :
 ```csharp
 var dict = new Dictionary<string, bool> { { "Displayed", true } };
 var replacements = new Dictionary<string, string> { { "value", "very small text" } };
-var evaluator = new ExpressionEvaluator(dict);
+var evaluator = new ExpressionEvaluator(dict, false);
 
-var engine = new TemplateEngine.TemplateEngine(evaluator, false, replacements);
+var engine = new TemplateEngine.TemplateEngine(evaluator, false, false, replacements);
 string result = engine.Apply(@"It's a sample with {if=""Displayed || true""}a displayed {tag=value}.{/if}{if=""!Displayed""}nothing.{/if}");
 ```
 
