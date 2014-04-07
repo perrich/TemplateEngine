@@ -6,15 +6,30 @@ namespace Perrich.TemplateEngine
 {
     public class ExpressionEvaluator
     {
+        private readonly bool ignoreCase;
         private readonly Dictionary<string, bool> variables;
 
         /// <summary>
-        /// Create the expression evaluator
+        ///     Create the expression evaluator
         /// </summary>
         /// <param name="variables">List of boolean variables and their values used during the evaluation</param>
-        public ExpressionEvaluator(Dictionary<string, bool> variables)
+        /// <param name="ignoreCase">Is key is case sensitive?</param>
+        public ExpressionEvaluator(Dictionary<string, bool> variables, bool ignoreCase)
         {
-            this.variables = variables;
+            this.ignoreCase = ignoreCase;
+
+            if (ignoreCase)
+            {
+                this.variables = new Dictionary<string, bool>();
+                foreach (var var in variables)
+                {
+                    this.variables.Add(var.Key.ToUpper(), var.Value);
+                }
+            }
+            else
+            {
+                this.variables = variables;
+            }
         }
 
         /// <summary>
@@ -25,10 +40,10 @@ namespace Perrich.TemplateEngine
         public bool Evaluate(string expression)
         {
             var stack = new Stack<bool>();
+            bool result = false;
 
             foreach (ITypedToken exp in ExpressionParser.Parse(expression))
             {
-                bool result = false;
                 switch (exp.TokenType)
                 {
                     case TokenType.Value:
@@ -36,10 +51,10 @@ namespace Perrich.TemplateEngine
                         break;
                     case TokenType.Variable:
                         var var = (VariableToken) exp;
-                        if (!variables.TryGetValue(var.Name, out result))
+                        if (!variables.TryGetValue((ignoreCase ? var.Name.ToUpper() : var.Name), out result))
                         {
                             throw new InvalidOperationException("Trying to evaluate an unknown variable named '" +
-                                                                var.Name + "', please check your dictionary!");
+                                                                var.Name + "', please check your variable dictionary!");
                         }
                         break;
                     case TokenType.Operator:

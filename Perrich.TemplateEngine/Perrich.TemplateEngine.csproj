@@ -74,7 +74,7 @@
   <ItemGroup>
     <Compile Include="ExpressionParser.cs" />
     <Compile Include="Constant.cs" />
-    <Compile Include="IfStatement.cs" />
+    <Compile Include="TextBlock.cs" />
     <Compile Include="OperatorHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExpressionEvaluator.cs" />

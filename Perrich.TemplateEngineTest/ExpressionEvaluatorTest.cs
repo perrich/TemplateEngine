@@ -60,7 +60,7 @@ namespace Perrich.TemplateEngineTest
 
         private void AssertEquals(bool expected, string str, Dictionary<string, bool> dict)
         {
-            var s = new ExpressionEvaluator(dict);
+            var s = new ExpressionEvaluator(dict, false);
             Assert.AreEqual(expected, s.Evaluate(str));
         }
     }
