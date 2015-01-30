@@ -13,6 +13,12 @@ namespace Perrich.TemplateEngineTest
         {
             Assert.Throws<InvalidOperationException>(() => ExpressionParser.Parse(""));
         }
+        
+        [Test]
+        public void ShouldRejectInvalidExpression()
+        {
+            Assert.Throws<InvalidOperationException>(() => ExpressionParser.Parse("true || false)"));
+        }
 
         [Test]
         public void ShouldReturnPostfixExpression()

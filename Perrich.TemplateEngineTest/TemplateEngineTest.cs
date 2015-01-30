@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
 using Perrich.TemplateEngine;
@@ -75,6 +76,36 @@ namespace Perrich.TemplateEngineTest
             var engine = new TemplateEngine.TemplateEngine(evaluator, false, false, replacements);
 
             Assert.Throws<InvalidOperationException>(() => engine.Apply(Text));
+        }
+
+        [Test]
+        public void ShouldRetrieveAllTags()
+        {
+            var dict = new Dictionary<string, bool>();
+            var replacements = new Dictionary<string, string>();
+            var evaluator = new ExpressionEvaluator(dict, false);
+
+            var engine = new TemplateEngine.TemplateEngine(evaluator, false, false, replacements);
+
+            var result = engine.GetAvailableTags(Text).ToList();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains("Displayed", result);
+            Assert.Contains("value", result);
+        }
+
+        [Test]
+        public void ShouldRetrieveAllTagsIgnoringCase()
+        {
+            var dict = new Dictionary<string, bool>();
+            var replacements = new Dictionary<string, string>();
+            var evaluator = new ExpressionEvaluator(dict, true);
+
+            var engine = new TemplateEngine.TemplateEngine(evaluator, false, true, replacements);
+
+            var result = engine.GetAvailableTags(Text).ToList();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains("DISPLAYED", result);
+            Assert.Contains("VALUE", result);
         }
     }
 }

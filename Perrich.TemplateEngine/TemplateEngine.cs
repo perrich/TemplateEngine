@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Perrich.TemplateEngine.Token;
 
 namespace Perrich.TemplateEngine
 {
@@ -69,6 +71,23 @@ namespace Perrich.TemplateEngine
             return ApplyReplacements(ApplyConditions(text));
         }
 
+        /// <summary>
+        /// Retrieve all available tags or variable in the provided text
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public HashSet<string> GetAvailableTags(string text)
+        {
+            var list = FindReplacements(text);
+
+            foreach (var el in FindConditionVariables(text))
+            {
+                list.Add(el);
+            }
+
+            return list;
+        }
+
         private string ApplyConditions(string text)
         {
             MatchCollection matches = regexIf.Matches(text);
@@ -92,8 +111,7 @@ namespace Perrich.TemplateEngine
 
             return UpdateBlocks(text, blocksList);
         }
-
-
+        
         private string ApplyReplacements(string text)
         {
             MatchCollection matches = regexReplacement.Matches(text);
@@ -119,6 +137,36 @@ namespace Perrich.TemplateEngine
             }
 
             return UpdateBlocks(text, blocksList);
+        }
+
+        private HashSet<string> FindConditionVariables(string text)
+        {
+            MatchCollection matches = regexIf.Matches(text);
+            var list = new HashSet<string>();
+            foreach (Match match in matches)
+            {
+                foreach (ITypedToken exp in ExpressionParser.Parse(match.Groups["condition"].Value))
+                {
+                    if (exp.TokenType == TokenType.Variable)
+                    {
+                        list.Add(ignoreCase ? ((VariableToken)exp).Name.ToUpper() : ((VariableToken)exp).Name);
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        private HashSet<string> FindReplacements(string text)
+        {
+            MatchCollection matches = regexReplacement.Matches(text);
+            var list = new HashSet<string>();
+            foreach (Match match in matches)
+            {
+                list.Add(ignoreCase ? match.Groups["tag"].Value.ToUpper() : match.Groups["tag"].Value);
+            }
+
+            return list;
         }
 
         private static string UpdateBlocks(string text, IEnumerable<TextBlock> blocksList)
