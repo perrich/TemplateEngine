@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Perrich.TemplateEngine.Token;
@@ -72,20 +71,17 @@ namespace Perrich.TemplateEngine
         }
 
         /// <summary>
-        /// Retrieve all available tags or variable in the provided text
+        ///     Retrieve all available tags or variable in the provided text
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
         public HashSet<string> GetAvailableTags(string text)
         {
-            var list = FindReplacements(text);
+            var results = new HashSet<string>();
+            FindReplacements(text, results);
+            FindConditionVariables(text, results);
 
-            foreach (var el in FindConditionVariables(text))
-            {
-                list.Add(el);
-            }
-
-            return list;
+            return results;
         }
 
         private string ApplyConditions(string text)
@@ -120,7 +116,7 @@ namespace Perrich.TemplateEngine
             foreach (Match match in matches)
             {
                 string tag = ignoreCase ? match.Groups["tag"].Value.ToUpper() : match.Groups["tag"].Value;
-                string result = null;
+                string result;
                 if (!replacements.TryGetValue(tag, out result))
                 {
                     throw new InvalidOperationException("Trying to replace an unknown tag named '" +
@@ -139,34 +135,25 @@ namespace Perrich.TemplateEngine
             return UpdateBlocks(text, blocksList);
         }
 
-        private HashSet<string> FindConditionVariables(string text)
+        private void FindConditionVariables(string text, HashSet<string> results)
         {
-            MatchCollection matches = regexIf.Matches(text);
-            var list = new HashSet<string>();
-            foreach (Match match in matches)
+            foreach (Match match in regexIf.Matches(text))
             {
-                foreach (ITypedToken exp in ExpressionParser.Parse(match.Groups["condition"].Value))
+                foreach (var exp in ExpressionParser.Parse(match.Groups["condition"].Value))
                 {
-                    if (exp.TokenType == TokenType.Variable)
-                    {
-                        list.Add(ignoreCase ? ((VariableToken)exp).Name.ToUpper() : ((VariableToken)exp).Name);
-                    }
+                    if (exp.TokenType != TokenType.Variable)
+                        continue;
+                    results.Add(ignoreCase ? ((VariableToken)exp).Name.ToUpper() : ((VariableToken)exp).Name);
                 }
             }
-
-            return list;
         }
 
-        private HashSet<string> FindReplacements(string text)
+        private void FindReplacements(string text, HashSet<string> results)
         {
-            MatchCollection matches = regexReplacement.Matches(text);
-            var list = new HashSet<string>();
-            foreach (Match match in matches)
+            foreach (Match match in regexReplacement.Matches(text))
             {
-                list.Add(ignoreCase ? match.Groups["tag"].Value.ToUpper() : match.Groups["tag"].Value);
+                results.Add(ignoreCase ? match.Groups["tag"].Value.ToUpper() : match.Groups["tag"].Value);
             }
-
-            return list;
         }
 
         private static string UpdateBlocks(string text, IEnumerable<TextBlock> blocksList)
