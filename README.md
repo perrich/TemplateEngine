@@ -7,7 +7,10 @@ How to use it ?
 ---
 
 - create a tag used by the replacement behavior {tag=xxxx}
-- create a conditional part using boolean expression {if="condition"}...{/if}. A condition can manage multiple boolean variable, constant (true/false) and 3 boolean operator (not "!", and "&&" and or "||")
+- create a conditional part using boolean expression {if="condition"}...{/if}. A condition can manage multiple boolean variable, constant (true/false) and 3 boolean operators: 
+ - "!" as not
+ - "&&" as and
+ - "||" as or
 
 Sample :
 ```csharp
