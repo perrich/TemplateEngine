@@ -107,5 +107,44 @@ namespace Perrich.TemplateEngineTest
             Assert.Contains("DISPLAYED", result);
             Assert.Contains("VALUE", result);
         }
+
+        [Test]
+        public void ShouldDoNotConvertLineSeparatorOnText()
+        {
+            const string replacement = "text\nwith\r\nnew lines";
+            var replacements = new Dictionary<string, string> { { "value", replacement } };
+            var evaluator = new ExpressionEvaluator(new Dictionary<string, bool>(), false);
+
+            var engine = new TemplateEngine.TemplateEngine(evaluator, false, false, replacements);
+
+            var result = engine.Apply("Sample with {tag=value}.");
+            Assert.AreEqual("Sample with " + replacement + ".", result);
+        }
+
+        [Test]
+        public void ShouldConvertLineSeparatorForTextOnRtf()
+        {
+            const string replacement = "text\nwith\r\nnew lines";
+            var replacements = new Dictionary<string, string> { { "value", replacement } };
+            var evaluator = new ExpressionEvaluator(new Dictionary<string, bool>(), false);
+
+            var engine = new TemplateEngine.TemplateEngine(evaluator, true, false, replacements);
+
+            var result = engine.Apply("{\\rtf1\\ansi Sample with \\{tag=value\\}.}");
+            Assert.AreEqual("{\\rtf1\\ansi Sample with text\\line\nwith\\line\nnew lines.}", result);
+        }
+
+        [Test]
+        public void ShouldNotConvertLineSeparatorForRtfOnRtf()
+        {
+            const string replacement = "{\\rtf1\\ansi text\nwith\r\nnew lines }";
+            var replacements = new Dictionary<string, string> { { "value", replacement } };
+            var evaluator = new ExpressionEvaluator(new Dictionary<string, bool>(), false);
+
+            var engine = new TemplateEngine.TemplateEngine(evaluator, true, false, replacements);
+
+            var result = engine.Apply("\\{tag=value\\}");
+            Assert.AreEqual(replacement, result);
+        }
     }
 }

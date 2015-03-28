@@ -23,20 +23,26 @@ namespace Perrich.TemplateEngine
         ///     Create a template engine
         /// </summary>
         /// <param name="evaluator">The boolean expression evaluator</param>
-        /// <param name="needToEscapeBrace">Is braces are saved with a backslash in text to read</param>
+        /// <param name="isRtf">Is template engine for RTF text?</param>
         /// <param name="replacements">List of tag replacements</param>
         /// <param name="ignoreCase">Is key is case sensitive?</param>
-        public TemplateEngine(ExpressionEvaluator evaluator, bool needToEscapeBrace, bool ignoreCase,
+        public TemplateEngine(ExpressionEvaluator evaluator, bool isRtf, bool ignoreCase,
             Dictionary<string, string> replacements)
         {
             this.evaluator = evaluator;
             this.ignoreCase = ignoreCase;
-            if (ignoreCase)
+            if (ignoreCase || isRtf)
             {
+                var regexNewLine = new Regex("[\r]{0,1}\n",
+                    RegexOptions.Compiled | RegexOptions.Singleline);
+                
                 this.replacements = new Dictionary<string, string>();
                 foreach (var var in replacements)
                 {
-                    this.replacements.Add(var.Key.ToUpper(), var.Value);
+                    this.replacements.Add(
+                        ignoreCase ? var.Key.ToUpper() : var.Key,
+                        isRtf && !var.Value.Contains("{\\") ? regexNewLine.Replace(var.Value, "\\line\n") : var.Value
+                    );
                 }
             }
             else
@@ -44,7 +50,7 @@ namespace Perrich.TemplateEngine
                 this.replacements = replacements;
             }
 
-            if (needToEscapeBrace)
+            if (isRtf)
             {
                 regexIf = new Regex(@"\\\{if=""(?<condition>[^""]+?)""\\\}(?<text>.*?)\\\{/if\\\}",
                     RegexOptions.Compiled | RegexOptions.Singleline);
